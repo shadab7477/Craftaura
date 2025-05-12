@@ -26,7 +26,17 @@ import otpRoutes from "./routes/otpRoutes.js"
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+app.get('/api/ping', (req, res) => {
+  res.json({ success: true, message: 'Backend is working!' });
+});
+
 app.use(express.json());
 
 // Serve static files from uploads directory

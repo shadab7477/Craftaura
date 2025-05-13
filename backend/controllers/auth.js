@@ -155,7 +155,7 @@ export const register = async (req, res) => {
       countryCode: countryCode || '',
       phoneNumber: phoneNumber || '',
       isVerified: true,
-      role: email.endsWith('@admin.com') ? 'admin' : 'user'
+      role: email.endsWith('@gmail.com') ? 'admin' : 'user'
     });
 
     // Generate JWT token

@@ -52,6 +52,14 @@ app.use('/api/addresses', addresses);
 app.use('/api/colors', colorRoutes);
 
 
+app.get('/api/ping', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.use('/api/images',imageRoutes);
 
 app.use('/api/cart', cartRoutes);

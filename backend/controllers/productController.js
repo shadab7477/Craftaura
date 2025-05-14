@@ -297,37 +297,34 @@ console.log(req.query);
 
     // Category filter (array if multiple categories)
     if (category) {
-      const categories = category.split(',');
+      const categories = category.split(',')
+        .map(cat => cat.trim()) // Trim whitespace from each category
+        .filter(cat => cat); // Remove any empty strings
       query.category = { $in: categories };
-      
     }
 
     // Pattern filter (array if multiple patterns)
     if (pattern) {
-      const patterns = pattern.split(',');
+      const patterns = pattern.split(',')
+        .map(p => p.trim())
+        .filter(p => p);
       query.pattern = { $in: patterns };
     }
 
     // Material filter (array if multiple materials)
     if (material) {
-      const materials = material.split(',');
-      
-      // This assumes your Product model has a materials array field
+      const materials = material.split(',')
+        .map(m => m.trim())
+        .filter(m => m);
       query.materials = { $in: materials };
-      
-      // OR if materials is a string field, use:
-      // query.material = { $in: materials };
     }
 
     // Size filter (array if multiple sizes)
     if (size) {
-      const sizes = size.split(',');
-      
-      // This assumes your Product model has a sizes array field
+      const sizes = size.split(',')
+        .map(s => s.trim())
+        .filter(s => s);
       query.sizes = { $in: sizes };
-      
-      // OR if size is a string field, use:
-      // query.size = { $in: sizes };
     }
 
     // Sorting options
@@ -342,7 +339,7 @@ console.log(req.query);
           sortOption = { price: -1 };
           break;
         case 'popularity':
-          sortOption = { popularity: -1 }; // Assuming you have a popularity field
+          sortOption = { popularity: -1 };
           break;
         case 'newest':
           sortOption = { createdAt: -1 };
@@ -358,6 +355,7 @@ console.log(req.query);
       .sort(sortOption);
 
     const count = await Product.countDocuments(query);
+console.log(products);
 
     res.status(200).json({
       success: true,

@@ -20,7 +20,7 @@ import BespokeRoutes from './routes/BespokeRoutes.js';
 import colorRoutes from './routes/colorRoutes.js';
 import pileHeightRoutes from "./routes/pileHeightRoutes.js"
 import handknottedRoutes from "./routes/handknottedRoutes.js"
-
+import userRoutes from "./routes/userRoutes.js" 
 import otpRoutes from "./routes/otpRoutes.js" 
 // import uploadRoutes from './routes/uploadRoutes.js';
 const app = express();
@@ -67,6 +67,9 @@ app.use('/api/wishlist', wishlistRoutes);
 
 app.use('/api/contact', contactRoutes);
 app.use('/api/bespoke', BespokeRoutes);
+
+app.use('/api/users', userRoutes);
+
 
 
 

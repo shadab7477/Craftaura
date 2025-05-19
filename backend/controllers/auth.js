@@ -335,7 +335,6 @@ export const logout = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   try {
 
-    console.log("user worked");
     
 
 
@@ -351,6 +350,7 @@ export const getCurrentUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+console.log(user.isGooglelogin);
 
     res.json({
       id: user._id,
@@ -359,6 +359,8 @@ export const getCurrentUser = async (req, res) => {
       email: user.email,
       countryCode: user.countryCode,
       phoneNumber: user.phoneNumber,
+      isGooglelogin:user.isGooglelogin,
+
       role: user.role,
       isVerified: user.isVerified
     });
@@ -381,29 +383,31 @@ export const getCurrentUser = async (req, res) => {
 
 
 
-
 export const updateUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
+    
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    const { firstName, lastName, email, phoneNumber, password, currentPassword } = req.body;
+
+    const { firstName, lastName, email, phoneNumber, password, currentPassword, countryCode } = req.body;
+
+console.log(req.body);
+
+
     // Validate email change
-    if (email && email !== user.email) {
-      const emailExists = await User.findOne({ email });
-      if (emailExists) {
-        return res.status(400).json({ message: 'Email already in use' });
-      }
-      
-      // In a real app, you might want to verify the new email
-      user.email = email;
-      user.isVerified = false; // Require verification for new email
-    }
+   
+
+    // Update basic profile info
     user.firstName = firstName || user.firstName;
     user.lastName = lastName || user.lastName;
     user.phoneNumber = phoneNumber || user.phoneNumber;
-    // Password change requires current password
+    user.countryCode = countryCode || user.countryCode;
+
+    console.log(password);
+    
+    // Only handle password change for non-Google users
     if (password) {
       if (!currentPassword) {
         return res.status(400).json({ message: 'Current password is required' });
@@ -416,24 +420,25 @@ export const updateUserProfile = async (req, res) => {
       
       user.password = password;
     }
+
     const updatedUser = await user.save();
-    // Omit sensitive data in response
-  
-    res.json(
-      {
-        user: {
-          _id: updatedUser._id,
-          firstName: updatedUser.firstName,
-          lastName: updatedUser.lastName,
-          email: updatedUser.email,
-          phoneNumber: updatedUser.phoneNumber,
-          role: updatedUser.role,
-        }
+console.log(updatedUser);
+
+    res.json({
+      user: {
+        _id: updatedUser._id,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        email: updatedUser.email,
+        countryCode: updatedUser.countryCode,
+        phoneNumber: updatedUser.phoneNumber,
+        role: updatedUser.role,
+        isGooglelogin: updatedUser.isGooglelogin
       }
-    );
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Profile update failed' });
+    console.error('Profile update error:', error);
+    res.status(500).json({ message: 'Profile update failed', error: error.message });
   }
 };
 

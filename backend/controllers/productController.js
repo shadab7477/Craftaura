@@ -288,18 +288,34 @@ export const getAllProducts = async (req, res) => {
       pattern, 
       material, 
       size, 
-      sort 
+      sort,
+      shape,
+      search
     } = req.query;
-console.log(req.query);
 
     // Build the query object
     const query = {};
 
+    // Shape filter
+    if (shape) {
+      query.shape = shape.toLowerCase();
+    }
+
+    // Search functionality
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } },
+        { pattern: { $regex: search, $options: 'i' } }
+      ];
+    }
+
     // Category filter (array if multiple categories)
     if (category) {
       const categories = category.split(',')
-        .map(cat => cat.trim()) // Trim whitespace from each category
-        .filter(cat => cat); // Remove any empty strings
+        .map(cat => cat.trim())
+        .filter(cat => cat);
       query.category = { $in: categories };
     }
 
@@ -355,7 +371,6 @@ console.log(req.query);
       .sort(sortOption);
 
     const count = await Product.countDocuments(query);
-console.log(products);
 
     res.status(200).json({
       success: true,

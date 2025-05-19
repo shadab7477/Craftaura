@@ -22,6 +22,8 @@ import pileHeightRoutes from "./routes/pileHeightRoutes.js"
 import handknottedRoutes from "./routes/handknottedRoutes.js"
 import userRoutes from "./routes/userRoutes.js" 
 import otpRoutes from "./routes/otpRoutes.js" 
+
+import chatbotRouter from './routes/chatbot.js';
 // import uploadRoutes from './routes/uploadRoutes.js';
 const app = express();
 
@@ -41,7 +43,7 @@ app.use('/api/patterns', patternRoutes);
 app.use('/api/shapes', shapeRoutes);
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/chatbot', chatbotRouter);
 app.use('/api/otp', otpRoutes);
 
 app.use('/api/products', productRoutes);

@@ -281,25 +281,35 @@ export const createProduct = async (req, res) => {
 // Backend controller for getting all products with filters
 export const getAllProducts = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 10, 
-      category, 
-      pattern, 
-      material, 
-      size, 
+    const {
+      page = 1,
+      limit = 10,
+      category,
+      pattern,
+      material,
+      size,
       sort,
       shape,
       search
     } = req.query;
 
-    // Build the query object
     const query = {};
 
-    // Shape filter
-    if (shape) {
-      query.shape = shape.toLowerCase();
+    // Shape filter inside colors[].shape
+if (shape) {
+  const shapes = shape
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  // Case-insensitive match for nested array field
+  query.colors = {
+    $elemMatch: {
+      shape: { $in: shapes.map(s => new RegExp(`^${s}$`, 'i')) }
     }
+  };
+}
+
 
     // Search functionality
     if (search) {
@@ -311,41 +321,32 @@ export const getAllProducts = async (req, res) => {
       ];
     }
 
-    // Category filter (array if multiple categories)
+    // Category filter
     if (category) {
-      const categories = category.split(',')
-        .map(cat => cat.trim())
-        .filter(cat => cat);
+      const categories = category.split(',').map(cat => cat.trim()).filter(Boolean);
       query.category = { $in: categories };
     }
 
-    // Pattern filter (array if multiple patterns)
+    // Pattern filter
     if (pattern) {
-      const patterns = pattern.split(',')
-        .map(p => p.trim())
-        .filter(p => p);
+      const patterns = pattern.split(',').map(p => p.trim()).filter(Boolean);
       query.pattern = { $in: patterns };
     }
 
-    // Material filter (array if multiple materials)
+    // Material filter
     if (material) {
-      const materials = material.split(',')
-        .map(m => m.trim())
-        .filter(m => m);
+      const materials = material.split(',').map(m => m.trim()).filter(Boolean);
       query.materials = { $in: materials };
     }
 
-    // Size filter (array if multiple sizes)
+    // Size filter
     if (size) {
-      const sizes = size.split(',')
-        .map(s => s.trim())
-        .filter(s => s);
+      const sizes = size.split(',').map(s => s.trim()).filter(Boolean);
       query.sizes = { $in: sizes };
     }
 
-    // Sorting options
-    let sortOption = { createdAt: -1 }; // Default sort by newest
-    
+    // Sorting logic
+    let sortOption = { createdAt: -1 };
     if (sort) {
       switch (sort) {
         case 'price_asc':
@@ -360,8 +361,6 @@ export const getAllProducts = async (req, res) => {
         case 'newest':
           sortOption = { createdAt: -1 };
           break;
-        default:
-          sortOption = { createdAt: -1 };
       }
     }
 
@@ -388,6 +387,8 @@ export const getAllProducts = async (req, res) => {
     });
   }
 };
+
+
 
 // Get single product by ID
 export const getProductById = async (req, res) => {

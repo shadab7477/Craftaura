@@ -155,7 +155,7 @@ export const register = async (req, res) => {
       countryCode: countryCode || '',
       phoneNumber: phoneNumber || '',
       isVerified: true,
-      role: email.endsWith('@gmail.com') ? 'admin' : 'user'
+      role:  'user'
     });
 
     // Generate JWT token
@@ -253,75 +253,81 @@ export const login = async (req, res) => {
     res.status(500).json({ message: 'Login failed' });
   }
 };
+// In your auth controller
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     
+    // 1. Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      // Don't reveal if user doesn't exist for security
-      return res.json({ 
-        success: true,
-        message: 'If an account exists with this email, a reset link has been sent'
-      });
+      return res.status(404).json({ message: 'User not found' });
     }
-    // Generate reset token
+    
+    // 2. Generate reset token
     const resetToken = crypto.randomBytes(20).toString('hex');
-    const resetTokenExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+    
+    // 3. Save token to user
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = resetTokenExpires;
+    user.resetPasswordExpires = resetTokenExpiry;
     await user.save();
-    // Send email with reset link
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    
+    // 4. Send email with reset link
+    const resetUrl = `carpetartisan.ch/reset-password/${resetToken}`;
     
     const mailOptions = {
-      from: process.env.EMAIL_FROM,
       to: user.email,
-      subject: 'Password Reset Request',
+      from: 'noreply@yourdomain.com',
+      subject: 'Password Reset',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Password Reset</h2>
-          <p>You requested a password reset. Click the link below to proceed:</p>
-          <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">
-            Reset Password
-          </a>
-          <p>This link will expire in 30 minutes.</p>
-          <p>If you didn't request this, please ignore this email.</p>
-        </div>
-      `,
+        <p>You requested a password reset</p>
+        <p>Click this <a href="${resetUrl}">link</a> to set a new password.</p>
+        <p>This link will expire in 1 hour.</p>
+      `
     };
+    
     await transporter.sendMail(mailOptions);
-    res.json({ 
-      success: true,
-      message: 'If an account exists with this email, a reset link has been sent'
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Password reset failed' });
+    
+    res.status(200).json({ message: 'Password reset email sent' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error sending reset email' });
   }
 };
+
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
-    if (!token || !newPassword) {
-      return res.status(400).json({ message: 'Token and new password are required' });
-    }
+    
+    // 1. Find user by token and check expiry
     const user = await User.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: new Date() }
+      resetPasswordExpires: { $gt: Date.now() }
     });
+    
     if (!user) {
       return res.status(400).json({ message: 'Invalid or expired token' });
     }
-    // Update password
+    
+    // 2. Update password and clear token
     user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
-    res.json({ success: true, message: 'Password updated successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Password reset failed' });
+    
+    // 3. Send confirmation email
+    const mailOptions = {
+      to: user.email,
+      from: 'noreply@yourdomain.com',
+      subject: 'Password Changed',
+      html: `<p>Your password has been successfully changed.</p>`
+    };
+    
+    await transporter.sendMail(mailOptions);
+    
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Error resetting password' });
   }
 };
 export const logout = async (req, res) => {

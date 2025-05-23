@@ -135,6 +135,7 @@ export const createProduct = async (req, res) => {
       category, pileHeight, material, pileWeight,
       deliveryTime, knotdensity, pricing, colors
     } = req.body;
+console.log(req.body);
 
     // Validate required fields
     if (!name || !description || !rugType || !shape || 

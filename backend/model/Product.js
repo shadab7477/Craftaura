@@ -6,6 +6,8 @@ const productSchema = new mongoose.Schema({
   shape: [{ type: String, required: true }],
   category: [{ type: String, required: true }],
   deliveryTime: { type: String, required: true },
+  rugType: [{ type: String, required: true }],
+
   pricing: {
     woolTypes: [
       {

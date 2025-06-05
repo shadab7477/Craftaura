@@ -90,38 +90,69 @@ console.log("Chal toh rhe h");
   }
 };
 
-// Delete image from Cloudinary
-export const deleteProductImage = async (req, res) => {
+
+
+export const Updatelayercolor = async (req,res )=>{
+  // Update layer image color
   try {
-console.log("kya haal londe");
-const { publicId } = req.params;
-
-    if (!publicId) {
-      return res.status(400).json({
-        success: false,
-        message: 'Public ID is required'
-      });
+    
+    const { _id, colorCode } = req.body;
+    
+    // Validate color code format
+    if (!/^#[0-9A-F]{6}$/i.test(colorCode)) {
+      return res.status(400).json({ error: 'Invalid color code format' });
     }
 
-    const result = await cloudinary.uploader.destroy(publicId);
+    const result = await Product.updateOne(
+      { "colors.layerImages._id": _id },
+      { $set: { "colors.$[].layerImages.$[img].colorCode": colorCode } },
+      { arrayFilters: [{ "img._id": _id }] }
+    );
 
-    if (result.result !== 'ok') {
-      return res.status(404).json({
-        success: false,
-        message: 'Image not found or already deleted'
-      });
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: 'Image not found' });
     }
 
-    res.status(200).json({
+    res.status(200).json({ 
       success: true,
-      message: 'Image deleted successfully'
+      message: 'Color updated successfully'
     });
   } catch (error) {
-    console.error('Error deleting image:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to delete image',
-      error: error.message
+    console.error('Error updating color:', error);
+    res.status(500).json({ error: 'Failed to update color' });
+  }
+}
+
+
+
+// Delete image from Cloudinary
+export const deleteProductImage = async (req, res) => {
+ try {
+    const { publicId, _id } = req.body; // Extract publicId (Cloudinary) and _id (MongoDB)
+    console.log(req.body);
+    
+    console.log("Deleting image with publicId:", publicId);
+
+    // 1️⃣ Delete from Cloudinary
+    const cloudinaryResult = await cloudinary.uploader.destroy(publicId);
+    console.log("Cloudinary deletion result:", cloudinaryResult);
+
+    // 2️⃣ Delete from MongoDB
+    const dbResult = await Product.updateOne(
+      { "colors.layerImages._id": _id },
+      { $pull: { "colors.$[].layerImages": { _id } } }
+    );
+    console.log("MongoDB deletion result:", dbResult);
+
+    res.status(200).json({ 
+      success: true, 
+      message: "Image and data deleted successfully" 
+    });
+  } catch (error) {
+    console.error("Error deleting image:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: "Failed to delete image and data" 
     });
   }
 };

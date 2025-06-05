@@ -6,7 +6,8 @@ import {
   getAllProducts,
   getProductById,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  Updatelayercolor
 } from '../controllers/productController.js';
 import upload from '../middleware/Multiimage.js';
 
@@ -37,6 +38,14 @@ router.put(
   '/update/:id',// Add this if you're not actually uploading files
   updateProduct
 );
+
+
+
+
+router.put('/update-layer-color',Updatelayercolor)
+
+
+router.post('/delete-images', deleteProductImage);
 
 // Product routes
 router.post('/', createProduct);

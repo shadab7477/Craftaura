@@ -22,20 +22,30 @@ import pileHeightRoutes from "./routes/pileHeightRoutes.js"
 import handknottedRoutes from "./routes/handknottedRoutes.js"
 import userRoutes from "./routes/userRoutes.js" 
 import otpRoutes from "./routes/otpRoutes.js" 
+import designRoutes from './routes/designRoutes.js';
 
 import chatbotRouter from './routes/chatbot.js';
 // import uploadRoutes from './routes/uploadRoutes.js';
 const app = express();
+connectDB()
 
 // Middleware
-app.use(cors());
+// ✅ Secure CORS setup
+const corsOptions = {
+  origin: 'https://carpetartisan.ch', // ✅ Allow only your frontend domain
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  credentials: true // ✅ Allow cookies / tokens if used
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Optional explicit preflight support
 app.use(express.json());
 
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-import designRoutes from './routes/designRoutes.js';
 app.use('/api/designs', designRoutes);
 
 app.use('/api/categories', categoryRoutes);
@@ -97,7 +107,6 @@ app.use((err, req, res, next) => {
 });
 
 
-connectDB()
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
